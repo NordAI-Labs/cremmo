@@ -19,6 +19,14 @@
 
 import Stripe from "stripe";
 
+/**
+ * Software as a service (SaaS) - business use. Los clientes de Cremmo son
+ * heladerías (uso empresarial, no consumo personal). Sin esto, Stripe Tax con
+ * Managed Payments (activado por defecto en cuentas nuevas) rechaza el
+ * Checkout con "the product tax code is missing".
+ */
+const TAX_CODE = "txcd_10103001";
+
 const PLANES = [
   {
     clave: "cremmo_pro_mensual",
@@ -108,6 +116,7 @@ async function crearPrecios() {
       const producto = await stripe.products.create({
         name: plan.nombre,
         description: plan.descripcion,
+        tax_code: TAX_CODE,
       });
       precio = await stripe.prices.create({
         product: producto.id,
@@ -118,6 +127,17 @@ async function crearPrecios() {
         lookup_key: plan.clave,
       });
       console.log(`  + ${plan.nombre}: creado (${precio.id})`);
+    }
+
+    // Se corrige también en productos ya existentes: si el producto se creó
+    // antes de tener en cuenta el tax_code (o la cuenta activó luego Managed
+    // Payments), el Checkout falla hasta que se rellena este campo.
+    const idProducto =
+      typeof precio.product === "string" ? precio.product : precio.product.id;
+    const producto = await stripe.products.retrieve(idProducto);
+    if (producto.tax_code !== TAX_CODE) {
+      await stripe.products.update(idProducto, { tax_code: TAX_CODE });
+      console.log(`    tax_code corregido (${TAX_CODE})`);
     }
 
     variables.push(`${plan.variable}=${precio.id}`);
