@@ -7,6 +7,7 @@ import { slugify, randomToken } from "@/lib/utils";
 import { PLAN_POR_DEFECTO, esPlanContratable } from "@/lib/planes";
 import { isStripeConfigured } from "@/lib/env";
 import { iniciarCheckout } from "@/app/(dashboard)/dashboard/suscripcion-actions";
+import { iniciarCheckoutAlta } from "@/lib/stripe/alta";
 import type { PlanHeladeria } from "@/types/database.types";
 
 export interface AuthState {
@@ -63,54 +64,35 @@ export async function iniciarSesion(
 }
 
 /**
- * Registro del personal + alta de heladería.
- * Guarda el nombre de la heladería en los metadatos por si el proyecto exige
- * confirmar el email antes de tener sesión (en ese caso se crea al primer login
- * desde la pantalla de onboarding).
+ * Registro: pago primero, cuenta después.
+ * No toca Supabase para nada: solo abre el pago del plan elegido con los
+ * datos del formulario guardados en la metadata de Stripe. Si el cliente
+ * abandona el pago, no queda ninguna cuenta a medio crear. La cuenta, la
+ * heladería y el email de activación los crea el webhook de Stripe en cuanto
+ * se confirma el primer cobro (ver `lib/stripe/alta.ts`).
  */
 export async function registrarse(
   _prev: AuthState,
   formData: FormData
 ): Promise<AuthState> {
   const email = String(formData.get("email") ?? "").trim();
-  const password = String(formData.get("password") ?? "");
   const nombre = String(formData.get("nombre") ?? "").trim();
   const nombreHeladeria = String(formData.get("nombre_heladeria") ?? "").trim();
   const plan = planValido(formData.get("plan"));
 
-  if (!email || !password || !nombreHeladeria) {
+  if (!email || !nombreHeladeria) {
     return { error: "Completa todos los campos obligatorios" };
   }
-  if (password.length < 6) {
-    return { error: "La contraseña debe tener al menos 6 caracteres" };
+  if (!isStripeConfigured()) {
+    return { error: "El cobro con tarjeta todavía no está configurado" };
   }
 
-  const supabase = await createClient();
-  const { data, error } = await supabase.auth.signUp({
-    email,
-    password,
-    // El plan viaja en los metadatos para no perderse si hay que confirmar el
-    // email: la heladería se crea después, desde la pantalla de onboarding.
-    options: {
-      data: { nombre, nombre_heladeria: nombreHeladeria, plan },
-    },
-  });
-
-  if (error) {
-    return { error: error.message };
+  const pago = await iniciarCheckoutAlta({ email, nombre, nombreHeladeria, plan });
+  if (pago.error || !pago.url) {
+    return { error: pago.error ?? "No se pudo iniciar el pago. Inténtalo de nuevo." };
   }
 
-  // Si hay sesión (confirmación de email desactivada), creamos la heladería ya.
-  if (data.session) {
-    const res = await crearHeladeriaInterno(nombreHeladeria, nombre, plan);
-    if (res.error) return res;
-    redirect(await destinoTrasElAlta(plan));
-  }
-
-  return {
-    message:
-      "Cuenta creada. Revisa tu email para confirmarla y luego inicia sesión.",
-  };
+  redirect(pago.url);
 }
 
 /** Cierra la sesión actual. */

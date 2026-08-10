@@ -400,6 +400,10 @@ export interface Database {
         };
         Returns: string;
       };
+      usuario_id_por_email: {
+        Args: { p_email: string };
+        Returns: string | null;
+      };
       estadisticas_resumen: {
         Args: {
           p_desde?: string | null;

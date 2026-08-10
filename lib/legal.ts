@@ -13,8 +13,8 @@ export const TITULAR = {
   telefono: "+34 696 28 93 17",
   /** Marca comercial bajo la que se presta el servicio. */
   marca: "Cremmo",
-  dominio: "www.cremmo.es",
-  url: "https://www.cremmo.es",
+  dominio: "www.cremmo.app",
+  url: "https://www.cremmo.app",
   /** Partido judicial para la sumisión expresa. */
   fuero: "Murcia",
 } as const;

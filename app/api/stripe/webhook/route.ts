@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { serverEnv } from "@/lib/env";
 import { stripe } from "@/lib/stripe/client";
 import { sincronizarSuscripcion } from "@/lib/stripe/suscripcion";
+import { completarAlta } from "@/lib/stripe/alta";
 
 export const dynamic = "force-dynamic";
 
@@ -55,7 +56,14 @@ async function procesar(evento: Stripe.Event) {
           ? sesion.subscription
           : sesion.subscription.id
       );
-      await sincronizarSuscripcion(sub, sesion.metadata?.heladeria_id);
+      // Un alta con pago primero (registro sin cuenta todavía) se distingue
+      // por la metadata que puso `iniciarCheckoutAlta`, y crea el usuario y
+      // la heladería en vez de sincronizar una que ya debería existir.
+      if (sub.metadata?.modo === "alta") {
+        await completarAlta(sub);
+      } else {
+        await sincronizarSuscripcion(sub, sesion.metadata?.heladeria_id);
+      }
       return;
     }
 

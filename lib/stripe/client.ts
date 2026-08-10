@@ -16,7 +16,7 @@ let cliente: Stripe | null = null;
 export function stripe(): Stripe {
   if (!cliente) {
     cliente = new Stripe(serverEnv.stripeSecretKey, {
-      appInfo: { name: "Cremmo", url: "https://www.cremmo.es" },
+      appInfo: { name: "Cremmo", url: "https://www.cremmo.app" },
     });
   }
   return cliente;

@@ -39,15 +39,29 @@ export function RegistroForm() {
     {}
   );
 
+  const pago = searchParams.get("pago");
+
   return (
     <Card>
       <CardHeader>
         <CardTitle className="text-2xl">Crea tu heladería</CardTitle>
         <CardDescription>
-          Regístrate y empieza a recibir pedidos desde el primer día.
+          Rellena tus datos, elige un plan y termina de pagarlo para activar tu
+          cuenta.
         </CardDescription>
       </CardHeader>
       <CardContent>
+        {pago === "cancelado" && (
+          <p className="mb-4 rounded-lg border border-warning/40 bg-warning/10 p-3 text-sm text-foreground">
+            Has cancelado el pago. Puedes intentarlo de nuevo cuando quieras.
+          </p>
+        )}
+        {pago === "procesando" && (
+          <p className="mb-4 rounded-lg border border-warning/40 bg-warning/10 p-3 text-sm text-foreground">
+            Tu pago se está procesando. Si no recibes el email de activación
+            en unos minutos, escríbenos.
+          </p>
+        )}
         <form action={formAction} className="space-y-4">
           <input type="hidden" name="plan" value={plan} />
 
@@ -124,18 +138,6 @@ export function RegistroForm() {
               placeholder="tu@heladeria.com"
             />
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="password">Contraseña *</Label>
-            <Input
-              id="password"
-              name="password"
-              type="password"
-              autoComplete="new-password"
-              required
-              minLength={6}
-            />
-          </div>
-
           <div className="flex items-start gap-3 rounded-lg border p-3">
             <Checkbox
               id="acepta"
@@ -184,8 +186,11 @@ export function RegistroForm() {
             className="w-full"
             disabled={pending || !acepta}
           >
-            {pending ? "Creando…" : "Crear cuenta"}
+            {pending ? "Redirigiendo al pago…" : "Continuar al pago"}
           </Button>
+          <p className="text-center text-xs text-muted-foreground">
+            Fijarás tu contraseña por email en cuanto se confirme el pago.
+          </p>
         </form>
 
         <p className="mt-4 text-center text-sm text-muted-foreground">

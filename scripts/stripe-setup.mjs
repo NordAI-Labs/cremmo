@@ -10,7 +10,7 @@
  * nada. Trabaja contra el modo (test o live) al que pertenezca la
  * STRIPE_SECRET_KEY del entorno.
  *
- * El dominio público sale de STRIPE_APP_URL (por defecto https://www.cremmo.es).
+ * El dominio público sale de STRIPE_APP_URL (por defecto https://www.cremmo.app).
  * Se usa para la URL del webhook y para los enlaces legales del portal.
  *
  * Los precios se crean con `tax_behavior: 'exclusive'` porque los importes de
@@ -59,7 +59,7 @@ if (!clave) {
   process.exit(1);
 }
 
-const sitio = (process.env.STRIPE_APP_URL || "https://www.cremmo.es").replace(
+const sitio = (process.env.STRIPE_APP_URL || "https://www.cremmo.app").replace(
   /\/$/,
   ""
 );

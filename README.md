@@ -20,7 +20,7 @@ a muchas heladerías; cada una (un _tenant_) solo ve y gestiona sus propios dato
 
 ```
 app/
-  (auth)/            login, registro, onboarding
+  (auth)/            login, registro, activar-cuenta, onboarding (fallback)
   (dashboard)/dashboard/   comandas, catalogo, promociones, mesas, ajustes
   (publico)/[slug]/  carta pública por heladería + confirmación
   api/
@@ -71,14 +71,20 @@ npm install
      recién creado en la misma transacción)
    - `0012_suscripcion.sql` — gestión del plan desde ajustes: cancelación al
      final del periodo pagado, reanudación y cambio de plan
+   - `0013_stripe.sql` — cobro real con Stripe Billing: columnas de
+     suscripción, RLS por estado de pago y protección de esas columnas
+   - `0014_alta_pago_previo.sql` — función interna para el alta con pago
+     primero (recuperar el usuario si el webhook se reintenta a medio
+     terminar)
 
    > Alternativamente, con la [CLI de Supabase](https://supabase.com/docs/guides/cli):
    > `supabase link` y `supabase db push`.
 
-3. (Recomendado) En **Authentication → Providers → Email**, desactiva
-   _"Confirm email"_ mientras desarrollas, para que el registro cree la
-   heladería al instante. Si lo dejas activado, el usuario confirmará el email,
-   iniciará sesión y creará la heladería desde la pantalla de _onboarding_.
+3. En **Authentication → URL Configuration**, pon el **Site URL** de
+   producción (`https://www.cremmo.app`) y añade la misma URL a **Redirect
+   URLs**. El alta usa `inviteUserByEmail`, así que el email que reciben las
+   heladerías nuevas enlaza siempre contra el Site URL configurado ahí, no
+   contra `NEXT_PUBLIC_SITE_URL`.
 
 4. (Opcional) Regenera los tipos con:
    ```bash
@@ -116,8 +122,10 @@ Abre <http://localhost:3000>.
 
 ## Flujo de uso
 
-1. **Regístrate** en `/registro` → crea tu heladería (quedas como `owner`).
-   Se generan dos mesas de ejemplo.
+1. **Regístrate** en `/registro`: elige plan y paga en Stripe Checkout. No se
+   crea ninguna cuenta hasta que el pago se confirma (ver siguiente sección);
+   entonces llega un email para fijar la contraseña y entras directo al panel
+   como `owner`, con dos mesas de ejemplo ya creadas.
 2. En **Catálogo** crea categorías, productos (con foto) y grupos de opciones.
 3. En **Mesas y QR**, genera/descarga/imprime el QR de cada mesa (apunta a
    `/m/<token>`).
@@ -144,18 +152,26 @@ los roles `anon` y `authenticated`.
 
 Flujo:
 
-1. **Alta**: al crear la heladería se redirige a Stripe Checkout
-   (`subscription`, con Stripe Tax y recogida de NIF). Hasta que el pago se
-   confirma, el panel entero se sustituye por la pantalla de suscripción
-   pendiente y la carta pública no se sirve.
-2. **Vuelta del pago**: `/api/stripe/retorno` sincroniza con Stripe antes de
-   devolver al panel, para que no se vea "pendiente" justo después de pagar.
-3. **Webhook** (`/api/stripe/webhook`): altas, renovaciones, cambios de plan,
-   impagos y bajas. Es lo que mantiene el estado al día.
-4. **Ajustes → Tu plan**: cambiar de plan (Stripe prorratea), cancelar
+1. **Alta: pago primero, cuenta después.** `/registro` no toca Supabase para
+   nada: solo abre un Stripe Checkout con los datos del formulario guardados en
+   su metadata (`lib/stripe/alta.ts`, `iniciarCheckoutAlta`). Si el cliente
+   abandona el pago, no queda ninguna cuenta a medio crear.
+2. **Confirmación** (`checkout.session.completed`, en el webhook o en
+   `/api/stripe/retorno` si llega antes): `completarAlta()` invita al usuario
+   por email (`inviteUserByEmail`), crea la heladería, el perfil `owner` y dos
+   mesas de ejemplo, y sincroniza la suscripción. Es idempotente, por si Stripe
+   reintenta el webhook.
+3. **Activación** (`/activar-cuenta`): el email de invitación lleva los tokens
+   de sesión en el propio enlace (no admite PKCE al ser un alta por email, no
+   por navegador); esa pantalla los recoge, pide una contraseña y entra al
+   panel.
+4. **Webhook** (`/api/stripe/webhook`): además del alta, procesa renovaciones,
+   cambios de plan, impagos y bajas de heladerías que ya existían. Es lo que
+   mantiene el estado al día.
+5. **Ajustes → Tu plan**: cambiar de plan (Stripe prorratea), cancelar
    (`cancel_at_period_end`, el servicio sigue hasta `periodo_fin`), reanudar, y
    un acceso al **portal de cliente** de Stripe para la tarjeta y las facturas.
-5. **Impago**: mientras Stripe reintenta el cobro (`past_due`) el servicio
+6. **Impago**: mientras Stripe reintenta el cobro (`past_due`) el servicio
    **no** se corta; se avisa en el panel. El corte llega cuando Stripe da la
    suscripción por cancelada.
 
