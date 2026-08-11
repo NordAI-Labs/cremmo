@@ -110,7 +110,7 @@ export function RegistroForm() {
               })}
             </div>
             <p className="text-xs text-muted-foreground">
-              Precios sin IVA. Sin permanencia.
+              Precios con IVA incluido. Sin permanencia.
             </p>
           </div>
 

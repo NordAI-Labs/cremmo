@@ -13,8 +13,10 @@
  * El dominio público sale de STRIPE_APP_URL (por defecto https://www.cremmo.app).
  * Se usa para la URL del webhook y para los enlaces legales del portal.
  *
- * Los precios se crean con `tax_behavior: 'exclusive'` porque los importes de
- * lib/planes.ts son sin IVA: Stripe Tax lo añade en el Checkout.
+ * Los precios se crean con `tax_behavior: 'inclusive'`: los importes de
+ * lib/planes.ts son el total que paga el cliente, IVA incluido. Stripe Tax
+ * calcula igualmente el desglose (para la factura y el modelo de IVA), pero
+ * lo extrae de ese importe en vez de sumarlo encima.
  */
 
 import Stripe from "stripe";
@@ -29,7 +31,11 @@ const TAX_CODE = "txcd_10103001";
 
 const PLANES = [
   {
-    clave: "cremmo_pro_mensual",
+    // '_v2': los precios _mensual originales se crearon con tax_behavior
+    // 'exclusive' (sumaban el IVA aparte). Un Price de Stripe es inmutable en
+    // ese campo, así que el cambio a IVA incluido exige un lookup_key nuevo
+    // en vez de reutilizar el de siempre.
+    clave: "cremmo_pro_mensual_v2",
     variable: "STRIPE_PRICE_PRO",
     nombre: "Cremmo Pro",
     descripcion:
@@ -37,7 +43,7 @@ const PLANES = [
     centimos: 8990,
   },
   {
-    clave: "cremmo_business_mensual",
+    clave: "cremmo_business_mensual_v2",
     variable: "STRIPE_PRICE_BUSINESS",
     nombre: "Cremmo Business",
     descripcion:
@@ -123,7 +129,7 @@ async function crearPrecios() {
         currency: "eur",
         unit_amount: plan.centimos,
         recurring: { interval: "month" },
-        tax_behavior: "exclusive",
+        tax_behavior: "inclusive",
         lookup_key: plan.clave,
       });
       console.log(`  + ${plan.nombre}: creado (${precio.id})`);

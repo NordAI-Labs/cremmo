@@ -71,7 +71,7 @@ export function SuscripcionBloqueada({
                 </span>
                 <span className="text-sm text-muted-foreground">/mes</span>
                 <span className="block text-xs text-muted-foreground">
-                  IVA no incluido
+                  IVA incluido
                 </span>
               </span>
             </div>

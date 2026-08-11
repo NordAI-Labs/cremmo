@@ -13,7 +13,7 @@ import type {
 export interface Plan {
   id: PlanHeladeria;
   nombre: string;
-  /** Precio mensual en euros, sin IVA. */
+  /** Precio mensual en euros, IVA incluido (es el total que paga el cliente). */
   precio: number;
   descripcion: string;
   caracteristicas: string[];

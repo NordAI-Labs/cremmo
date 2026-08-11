@@ -138,7 +138,7 @@ Abre <http://localhost:3000>.
 ## Planes y cobro con Stripe
 
 Cada heladería elige plan al registrarse y se cobra por meses anticipados con
-Stripe Billing. El catálogo de planes y sus precios (sin IVA) están en
+Stripe Billing. El catálogo de planes y sus precios (IVA incluido) están en
 `lib/planes.ts`; los precios equivalentes en Stripe los crea
 `npm run stripe:setup`.
 

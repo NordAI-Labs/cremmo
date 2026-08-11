@@ -133,7 +133,7 @@ export function PlanCard({
                   /mes
                 </span>
               </p>
-              <p className="text-xs text-muted-foreground">IVA no incluido</p>
+              <p className="text-xs text-muted-foreground">IVA incluido</p>
             </div>
           </div>
 

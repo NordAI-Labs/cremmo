@@ -132,7 +132,7 @@ export default function Home() {
                     </span>
                     <span className="text-muted-foreground">/mes</span>
                   </p>
-                  <p className="text-xs text-muted-foreground">IVA no incluido</p>
+                  <p className="text-xs text-muted-foreground">IVA incluido</p>
 
                   <ul className="mt-6 flex-1 space-y-2 text-sm">
                     {plan.caracteristicas.map((c) => (

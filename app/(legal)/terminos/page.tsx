@@ -57,7 +57,7 @@ export default function TerminosPage() {
           <thead>
             <tr>
               <th>Plan</th>
-              <th>Precio mensual (sin IVA)</th>
+              <th>Precio mensual (IVA incluido)</th>
               <th>Incluye</th>
             </tr>
           </thead>
@@ -76,9 +76,10 @@ export default function TerminosPage() {
         </table>
       </TablaScroll>
       <p>
-        Los precios se expresan <strong>sin IVA</strong>; se aplicará el tipo
-        impositivo vigente en cada momento. Los planes marcados como próximamente
-        disponibles no son contratables hasta que se anuncie su lanzamiento.
+        Los precios se expresan <strong>con el IVA incluido</strong>, calculado
+        al tipo impositivo vigente en cada momento. Los planes marcados como
+        próximamente disponibles no son contratables hasta que se anuncie su
+        lanzamiento.
       </p>
       <p>
         El Proveedor puede modificar los precios comunicándolo al Cliente con al
