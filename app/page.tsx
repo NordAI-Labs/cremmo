@@ -93,7 +93,7 @@ export default function Home() {
       </section>
 
       <section id="precios" className="border-t bg-accent/20 py-16 md:py-20">
-        <div className="mx-auto max-w-5xl px-4">
+        <div className="mx-auto max-w-6xl px-4">
           <div className="text-center">
             <h2 className="text-3xl md:text-4xl font-bold tracking-tight">
               Precios sin sorpresas
@@ -104,7 +104,7 @@ export default function Home() {
             </p>
           </div>
 
-          <div className="mt-10 grid gap-6 md:grid-cols-2">
+          <div className="mt-10 grid gap-6 md:grid-cols-3">
             {PLANES.map((plan) => (
               <Card
                 key={plan.id}

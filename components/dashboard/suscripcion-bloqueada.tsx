@@ -33,7 +33,7 @@ export function SuscripcionBloqueada({
 }) {
   const [pending, start] = useTransition();
   // Las cuentas antiguas ('basico') se facturan como Pro.
-  const planMostrado = getPlan(plan) ?? PLANES[0];
+  const planMostrado = getPlan(plan) ?? getPlan("pro") ?? PLANES[0];
 
   function pagar() {
     start(async () => {

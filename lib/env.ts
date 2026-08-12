@@ -43,6 +43,9 @@ export const serverEnv = {
   },
   /** Id del precio recurrente de cada plan en Stripe (price_...). */
   stripePrecios: {
+    get basic(): string | undefined {
+      return process.env.STRIPE_PRICE_BASIC || undefined;
+    },
     get pro(): string | undefined {
       return process.env.STRIPE_PRICE_PRO || undefined;
     },

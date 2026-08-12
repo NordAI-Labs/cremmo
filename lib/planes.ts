@@ -22,19 +22,33 @@ export interface Plan {
   destacado?: boolean;
 }
 
+/** Se anuncia ya en Pro y Business aunque todavía no está implementado. */
+const CARACTERISTICA_IA =
+  "Asistente IA que recomienda productos y aumenta el ticket medio (próximamente)";
+
 export const PLANES: Plan[] = [
+  {
+    id: "basic",
+    nombre: "Basic",
+    precio: 39.9,
+    descripcion: "Para empezar a vender por QR sin complicarte.",
+    caracteristicas: [
+      "Pedidos por QR en cada mesa",
+      "Carta con asistentes por pasos",
+      "Promociones y combos",
+      "Comandas en tiempo real",
+      "Estadísticas de ventas",
+    ],
+    disponible: true,
+  },
   {
     id: "pro",
     nombre: "Pro",
     precio: 89.9,
     descripcion: "Todo lo que necesitas para vender desde el primer día.",
     caracteristicas: [
-      "Todas las funcionalidades de la app",
-      "Pedidos por QR en cada mesa",
-      "Carta con asistentes por pasos",
-      "Promociones y combos",
-      "Comandas en tiempo real",
-      "Estadísticas de ventas",
+      "Todas las funcionalidades del plan Basic",
+      CARACTERISTICA_IA,
     ],
     disponible: true,
     destacado: true,
@@ -54,7 +68,7 @@ export const PLANES: Plan[] = [
 ];
 
 /** Plan marcado por defecto en el registro. */
-export const PLAN_POR_DEFECTO: PlanHeladeria = "pro";
+export const PLAN_POR_DEFECTO: PlanHeladeria = "basic";
 
 export function getPlan(id: string | null | undefined): Plan | undefined {
   return PLANES.find((p) => p.id === id);

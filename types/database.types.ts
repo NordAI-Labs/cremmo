@@ -17,8 +17,10 @@ export type Json =
   | Json[];
 
 // 'basico' y 'multi_sede' son los valores heredados del esquema inicial: se
-// mantienen porque Postgres no permite borrar valores de un enum.
-export type PlanHeladeria = "pro" | "business" | "basico" | "multi_sede";
+// mantienen porque Postgres no permite borrar valores de un enum. 'basic' es
+// el plan de entrada actual (0015/0016_plan_basic.sql) y NO es lo mismo que
+// 'basico': ese es el heredado, este es el nuevo plan de pago.
+export type PlanHeladeria = "pro" | "business" | "basic" | "basico" | "multi_sede";
 export type RolPerfil = "owner" | "staff";
 export type TipoCategoria = "simple" | "asistente";
 export type TipoGrupoOpcion = "unica" | "multiple";

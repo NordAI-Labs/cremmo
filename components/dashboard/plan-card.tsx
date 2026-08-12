@@ -71,7 +71,7 @@ export function PlanCard({
 
   const plan = getPlan(planActual);
   // Las cuentas antiguas ('basico') se muestran como Pro, que es su equivalente.
-  const planMostrado = plan ?? PLANES[0];
+  const planMostrado = plan ?? getPlan("pro") ?? PLANES[0];
   const vigente = estado === "vigente" || estado === "impago";
 
   /**

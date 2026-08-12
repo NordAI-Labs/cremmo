@@ -9,6 +9,7 @@ import type { PlanHeladeria } from "@/types/database.types";
 /** Precio (price_...) con el que se factura un plan. */
 export function precioDePlan(plan: PlanHeladeria): string | undefined {
   if (plan === "business") return serverEnv.stripePrecios.business;
+  if (plan === "basic") return serverEnv.stripePrecios.basic;
   // 'basico' y 'multi_sede' son los planes heredados del esquema inicial:
   // equivalen a Pro y se facturan como tal.
   return serverEnv.stripePrecios.pro;
@@ -21,5 +22,6 @@ export function planDePrecio(
   if (!precioId) return null;
   if (precioId === serverEnv.stripePrecios.business) return "business";
   if (precioId === serverEnv.stripePrecios.pro) return "pro";
+  if (precioId === serverEnv.stripePrecios.basic) return "basic";
   return null;
 }

@@ -76,6 +76,8 @@ npm install
    - `0014_alta_pago_previo.sql` — función interna para el alta con pago
      primero (recuperar el usuario si el webhook se reintenta a medio
      terminar)
+   - `0015_plan_basic.sql` / `0016_plan_basic_defecto.sql` — nuevo plan de
+     entrada Basic: valor del enum, nuevo default y onboarding
 
    > Alternativamente, con la [CLI de Supabase](https://supabase.com/docs/guides/cli):
    > `supabase link` y `supabase db push`.

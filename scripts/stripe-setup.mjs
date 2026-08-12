@@ -31,6 +31,14 @@ const TAX_CODE = "txcd_10103001";
 
 const PLANES = [
   {
+    clave: "cremmo_basic_mensual_v1",
+    variable: "STRIPE_PRICE_BASIC",
+    nombre: "Cremmo Basic",
+    descripcion:
+      "Para empezar a vender por QR: pedidos por QR en cada mesa, carta con asistentes, promociones, comandas en tiempo real y estadísticas.",
+    centimos: 3990,
+  },
+  {
     // '_v2': los precios _mensual originales se crearon con tax_behavior
     // 'exclusive' (sumaban el IVA aparte). Un Price de Stripe es inmutable en
     // ese campo, así que el cambio a IVA incluido exige un lookup_key nuevo
