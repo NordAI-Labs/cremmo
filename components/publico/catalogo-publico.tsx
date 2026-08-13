@@ -9,7 +9,8 @@ import {
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { IceCream, ShoppingBag, Tag } from "lucide-react";
+import { toast } from "sonner";
+import { IceCream, ShoppingBag, Sparkles, Tag } from "lucide-react";
 import {
   DESCRIPCION_ASISTENTE_POR_DEFECTO,
   IconoAsistente,
@@ -18,8 +19,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-import { formatEuro } from "@/lib/utils";
-import { useCart } from "@/store/cart";
+import { cn, formatEuro } from "@/lib/utils";
+import { nuevaLineaId, useCart } from "@/store/cart";
 import {
   ProductWizard,
   configDesdeProducto,
@@ -28,6 +29,11 @@ import {
 } from "@/components/publico/product-wizard";
 import { ComboWizard } from "@/components/publico/combo-wizard";
 import { CartSheet } from "@/components/publico/cart-sheet";
+import {
+  AsistenteIA,
+  type AccionSugerencia,
+  type SugerenciaAsistente,
+} from "@/components/publico/asistente-ia";
 import type { Categoria } from "@/types/database.types";
 import type {
   CategoriaConOpciones,
@@ -64,6 +70,7 @@ export function CatalogoPublico({
   categoriasAsistente,
   promociones,
   combos,
+  asistenteIA,
 }: {
   heladeria: HeladeriaPublica;
   mesaNombre: string | null;
@@ -75,10 +82,14 @@ export function CatalogoPublico({
   categoriasAsistente: CategoriaConOpciones[];
   promociones: PromocionConItems[];
   combos: PromocionConSlots[];
+  /** El plan incluye el Asistente IA y está configurado. */
+  asistenteIA: boolean;
 }) {
   const router = useRouter();
   const setSlug = useCart((s) => s.setSlug);
   const clearCart = useCart((s) => s.clear);
+  const addItem = useCart((s) => s.addItem);
+  const items = useCart((s) => s.items);
   const count = useCart((s) => s.count());
   const total = useCart((s) => s.total());
   // true solo en cliente (evita mismatch de hidratación con el carrito persistido).
@@ -90,6 +101,7 @@ export function CatalogoPublico({
   const [config, setConfig] = useState<WizardConfig | null>(null);
   const [combo, setCombo] = useState<PromocionConSlots | null>(null);
   const [cartOpen, setCartOpen] = useState(false);
+  const [chatOpen, setChatOpen] = useState(false);
   const hayPromos = promociones.length > 0 || combos.length > 0;
 
   useEffect(() => {
@@ -165,6 +177,64 @@ export function CatalogoPublico({
 
   function abrirAsistente(c: CategoriaConOpciones) {
     setConfig(configDesdeCategoria(c));
+  }
+
+  // El chat solo devuelve tipo + id: la carta es la que sabe si eso se añade de
+  // un toque o hay que configurarlo, y cuánto cuesta.
+  function resolverSugerencia(s: SugerenciaAsistente): AccionSugerencia | null {
+    if (s.tipo === "producto") {
+      const p = productos.find((x) => x.id === s.id);
+      if (!p) return null;
+      return {
+        etiqueta: p.grupos_opciones.length > 0 ? "Elegir" : "Añadir",
+        precio: Number(p.precio),
+      };
+    }
+    if (s.tipo === "categoria") {
+      const c = categoriasAsistente.find((x) => x.id === s.id);
+      return c ? { etiqueta: "Elegir" } : null;
+    }
+    const k = combos.find((x) => x.id === s.id);
+    return k ? { etiqueta: "Elegir", precio: k.precio_promocional } : null;
+  }
+
+  function elegirSugerencia(s: SugerenciaAsistente) {
+    if (s.tipo === "categoria") {
+      const c = categoriasAsistente.find((x) => x.id === s.id);
+      if (!c) return;
+      setChatOpen(false);
+      abrirAsistente(c);
+      return;
+    }
+    if (s.tipo === "combo") {
+      const k = combos.find((x) => x.id === s.id);
+      if (!k) return;
+      setChatOpen(false);
+      setCombo(k);
+      return;
+    }
+
+    const p = productos.find((x) => x.id === s.id);
+    if (!p) return;
+    if (p.grupos_opciones.length > 0) {
+      setChatOpen(false);
+      abrirProducto(p);
+      return;
+    }
+
+    // Producto sin opciones: entra directo y el chat sigue abierto, que es
+    // donde el cliente está eligiendo.
+    addItem({
+      lineId: nuevaLineaId(),
+      producto_id: p.id,
+      nombre: p.nombre,
+      precio_base: Number(p.precio),
+      cantidad: 1,
+      foto_url: p.foto_url,
+      personalizaciones: [],
+      precio_unitario: Number(p.precio),
+    });
+    toast.success(`${p.nombre} añadido al carrito`);
   }
 
   return (
@@ -343,6 +413,34 @@ export function CatalogoPublico({
           Cookies
         </Link>
       </footer>
+
+      {/* Asistente IA: se apoya sobre la barra del carrito cuando hay pedido */}
+      {asistenteIA && (
+        <>
+          <Button
+            size="lg"
+            className={cn(
+              "fixed right-4 z-30 rounded-full shadow-lg transition-all",
+              mounted && count > 0 ? "bottom-24" : "bottom-6"
+            )}
+            onClick={() => setChatOpen(true)}
+          >
+            <Sparkles className="h-5 w-5" />
+            Te ayudo a elegir
+          </Button>
+          <AsistenteIA
+            open={chatOpen}
+            onClose={() => setChatOpen(false)}
+            slug={heladeria.slug}
+            carrito={items.map((i) => ({
+              nombre: i.nombre,
+              cantidad: i.cantidad,
+            }))}
+            resolver={resolverSugerencia}
+            onElegir={elegirSugerencia}
+          />
+        </>
+      )}
 
       {/* Botón flotante del carrito */}
       {mounted && count > 0 && (

@@ -4,6 +4,13 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import type { CartItem } from "@/types";
 
+/** Id de línea del carrito. Único por línea, no por producto. */
+export function nuevaLineaId(): string {
+  return typeof crypto !== "undefined" && "randomUUID" in crypto
+    ? crypto.randomUUID()
+    : String(Date.now() + Math.random());
+}
+
 interface CartState {
   slug: string | null;
   items: CartItem[];

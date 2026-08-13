@@ -8,7 +8,8 @@ import {
   expiracionMesaSessionCookie,
   verificarMesaSessionCookie,
 } from "@/lib/mesa-session";
-import { suscripcionVigente } from "@/lib/planes";
+import { suscripcionVigente, tieneAsistenteIA } from "@/lib/planes";
+import { isAnthropicConfigured } from "@/lib/env";
 import type {
   Categoria,
   GrupoOpcion,
@@ -48,7 +49,7 @@ export default async function CartaPublicaPage({
   const { data: heladeria } = await supabase
     .from("heladerias")
     .select(
-      "id, nombre, slug, logo_url, direccion, activa, cancelada_en, suscripcion_estado"
+      "id, nombre, slug, logo_url, direccion, plan, activa, cancelada_en, suscripcion_estado"
     )
     .eq("slug", slug)
     .maybeSingle();
@@ -198,6 +199,7 @@ export default async function CartaPublicaPage({
       categoriasAsistente={categoriasAsistente}
       promociones={promocionesSimples}
       combos={combos}
+      asistenteIA={tieneAsistenteIA(heladeria.plan) && isAnthropicConfigured()}
     />
   );
 }

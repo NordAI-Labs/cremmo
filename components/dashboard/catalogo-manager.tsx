@@ -25,11 +25,13 @@ import type {
   TipoGrupoOpcion,
   RolGrupo,
 } from "@/types/database.types";
+import { ALERGENOS } from "@/lib/alergenos";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -372,6 +374,7 @@ function ProductosTab({
     categoria_id: "" as string,
     foto_url: null as string | null,
     disponible: true,
+    alergenos: [] as string[],
     orden: 0,
   });
 
@@ -389,9 +392,19 @@ function ProductosTab({
       categoria_id: p?.categoria_id ?? "",
       foto_url: p?.foto_url ?? null,
       disponible: p?.disponible ?? true,
+      alergenos: p?.alergenos ?? [],
       orden: p?.orden ?? productos.length,
     });
     setOpen(true);
+  }
+
+  function alternarAlergeno(id: string) {
+    setForm((f) => ({
+      ...f,
+      alergenos: f.alergenos.includes(id)
+        ? f.alergenos.filter((a) => a !== id)
+        : [...f.alergenos, id],
+    }));
   }
 
   function guardar() {
@@ -410,6 +423,7 @@ function ProductosTab({
           categoria_id: form.categoria_id || null,
           foto_url: form.foto_url,
           disponible: form.disponible,
+          alergenos: form.alergenos,
           orden: form.orden,
         }),
       "Producto guardado"
@@ -572,6 +586,34 @@ function ProductosTab({
                   ))}
                 </SelectContent>
               </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>Alérgenos</Label>
+              <p className="text-xs text-muted-foreground">
+                Los 14 de declaración obligatoria. El Asistente IA de la carta
+                los usa para avisar al cliente, así que conviene tenerlos al día.
+              </p>
+              <div className="grid gap-2 rounded-lg border p-3 sm:grid-cols-2">
+                {ALERGENOS.map((a) => (
+                  <label
+                    key={a.id}
+                    className="flex cursor-pointer items-start gap-2 text-sm"
+                  >
+                    <Checkbox
+                      checked={form.alergenos.includes(a.id)}
+                      onCheckedChange={() => alternarAlergeno(a.id)}
+                    />
+                    <span className="min-w-0">
+                      {a.nombre}
+                      {a.ejemplos && (
+                        <span className="block text-xs text-muted-foreground">
+                          {a.ejemplos}
+                        </span>
+                      )}
+                    </span>
+                  </label>
+                ))}
+              </div>
             </div>
             <div className="flex items-center justify-between rounded-lg border p-3">
               <Label>Disponible</Label>

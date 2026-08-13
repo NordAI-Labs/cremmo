@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { getSessionData } from "@/lib/auth/session";
+import { alergenosValidos } from "@/lib/alergenos";
 import type {
   TipoGrupoOpcion,
   RolGrupo,
@@ -92,6 +93,7 @@ export async function guardarProducto(input: {
   categoria_id: string | null;
   foto_url: string | null;
   disponible: boolean;
+  alergenos: string[];
   orden: number;
 }): Promise<Result> {
   const hid = await heladeriaId();
@@ -105,6 +107,9 @@ export async function guardarProducto(input: {
     categoria_id: input.categoria_id,
     foto_url: input.foto_url,
     disponible: input.disponible,
+    // El check de la BD rechaza claves desconocidas: se filtran antes para que
+    // un cliente desactualizado no tumbe el guardado entero.
+    alergenos: alergenosValidos(input.alergenos),
     orden: input.orden,
   };
 

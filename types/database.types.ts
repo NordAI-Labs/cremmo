@@ -164,6 +164,8 @@ export interface Database {
           precio: number;
           foto_url: string | null;
           disponible: boolean;
+          /** Claves de los 14 alérgenos UE (ver lib/alergenos.ts). */
+          alergenos: string[];
           orden: number;
           created_at: string;
         };
@@ -176,6 +178,7 @@ export interface Database {
           precio?: number;
           foto_url?: string | null;
           disponible?: boolean;
+          alergenos?: string[];
           orden?: number;
           created_at?: string;
         };

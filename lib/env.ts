@@ -53,6 +53,20 @@ export const serverEnv = {
       return process.env.STRIPE_PRICE_BUSINESS || undefined;
     },
   },
+  /** Asistente IA de la carta (planes Pro y Business). */
+  get anthropicApiKey(): string {
+    const v = process.env.ANTHROPIC_API_KEY;
+    if (!v) throw new Error("Falta ANTHROPIC_API_KEY");
+    return v;
+  },
+  /**
+   * Modelo del asistente. Por defecto el más rápido y barato: las respuestas
+   * son cortas y siempre van pegadas al catálogo que se le pasa, así que no
+   * hace falta un modelo grande.
+   */
+  get anthropicModel(): string {
+    return process.env.ANTHROPIC_MODEL || "claude-haiku-4-5";
+  },
 };
 
 /** True si hay clave de Stripe configurada (el cobro puede operar). */
@@ -63,4 +77,9 @@ export function isStripeConfigured(): boolean {
 /** True si hay URL y clave anónima de Supabase configuradas. */
 export function isSupabaseConfigured(): boolean {
   return !!env.supabaseUrl && !!env.supabaseAnonKey;
+}
+
+/** True si el Asistente IA puede operar (hay clave de Anthropic). */
+export function isAnthropicConfigured(): boolean {
+  return !!process.env.ANTHROPIC_API_KEY;
 }

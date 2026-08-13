@@ -22,9 +22,8 @@ export interface Plan {
   destacado?: boolean;
 }
 
-/** Se anuncia ya en Pro y Business aunque todavía no está implementado. */
 const CARACTERISTICA_IA =
-  "Asistente IA que recomienda productos y aumenta el ticket medio (próximamente)";
+  "Asistente IA en la carta: recomienda productos, avisa de alérgenos y sube el ticket medio";
 
 export const PLANES: Plan[] = [
   {
@@ -77,6 +76,16 @@ export function getPlan(id: string | null | undefined): Plan | undefined {
 /** True si el id corresponde a un plan que hoy se puede contratar. */
 export function esPlanContratable(id: string | null | undefined): boolean {
   return !!getPlan(id)?.disponible;
+}
+
+/**
+ * True si el plan incluye el Asistente IA de la carta pública. Business lo
+ * hereda de Pro, así que ya está contemplado aunque todavía no se venda.
+ * Los planes heredados del esquema inicial ('basico', 'multi_sede') se quedan
+ * fuera: equivalen a Basic en funcionalidades.
+ */
+export function tieneAsistenteIA(plan: PlanHeladeria): boolean {
+  return plan === "pro" || plan === "business";
 }
 
 /** "89,90 €" con el formato español. */

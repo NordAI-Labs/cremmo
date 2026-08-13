@@ -81,6 +81,8 @@ npm install
    - `0017_valoraciones_app.sql` — valoración de la app por heladería (una
      por heladería), con RLS para el modal del panel y la sección de reseñas
      de la landing
+   - `0018_alergenos.sql` — los 14 alérgenos UE por producto, base del
+     [Asistente IA de la carta](#asistente-ia-de-la-carta)
 
    > Alternativamente, con la [CLI de Supabase](https://supabase.com/docs/guides/cli):
    > `supabase link` y `supabase db push`.
@@ -112,10 +114,13 @@ cp .env.example .env.local
 - `SESSION_SECRET`: firma la cookie de sesión de mesa (ver más abajo). Genera
   una cadena aleatoria propia, por ejemplo con
   `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`.
-- `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `STRIPE_PRICE_PRO`,
-  `STRIPE_PRICE_BUSINESS`, `STRIPE_PORTAL_CONFIG`: cobro de la suscripción, ver
-  [Planes y cobro con Stripe](#planes-y-cobro-con-stripe). En local usa siempre
-  claves `sk_test_...`.
+- `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `STRIPE_PRICE_BASIC`,
+  `STRIPE_PRICE_PRO`, `STRIPE_PRICE_BUSINESS`, `STRIPE_PORTAL_CONFIG`: cobro de
+  la suscripción, ver [Planes y cobro con Stripe](#planes-y-cobro-con-stripe).
+  En local usa siempre claves `sk_test_...`.
+- `ANTHROPIC_API_KEY` y, si quieres cambiar de modelo, `ANTHROPIC_MODEL`: ver
+  [Asistente IA de la carta](#asistente-ia-de-la-carta). Sin la clave el
+  asistente simplemente no se muestra.
 
 ### 5. Arrancar
 
@@ -206,6 +211,38 @@ registro es una declaración fiscal que no conviene automatizar.
 > El modelo conserva `heladerias.stripe_account_id`, `pedidos.estado_pago` y
 > `pedidos.stripe_payment_intent_id` del diseño inicial, por si algún día se
 > retoma el pago del cliente final (hoy no se usa).
+
+## Asistente IA de la carta
+
+Chat en la carta pública (planes **Pro** y **Business**) que recomienda de la
+carta, responde dudas de alérgenos y propone complementos para subir el ticket
+medio. Se apoya en Anthropic (Claude).
+
+- **Gating**: `tieneAsistenteIA()` en `lib/planes.ts`. La carta esconde el botón
+  cuando el plan no lo incluye o falta `ANTHROPIC_API_KEY`, y
+  `/api/asistente` vuelve a comprobar plan y suscripción por su cuenta: no se
+  fía de lo que llegue del navegador.
+- **Contexto**: `lib/asistente/catalogo.ts` arma la carta de la heladería
+  (productos con precio y alérgenos, asistentes por pasos con sus opciones y
+  combos pedibles) con referencias cortas tipo `p3`, `a1`, `k2`.
+- **Respuesta**: el modelo contesta siempre a través de una herramienta
+  (`lib/asistente/responder.ts`) que devuelve el texto del chat y las
+  referencias de lo que sugiere. Cualquier referencia que no exista en la carta
+  se descarta, así que **no puede recomendar algo que no esté a la venta**.
+- **Añadir al pedido**: el chat solo muestra botones; quien resuelve cada
+  sugerencia es la carta (`components/publico/catalogo-publico.tsx`). Un
+  producto sin opciones entra directo al carrito y el chat sigue abierto; lo que
+  hay que configurar abre el asistente de pasos o el combo. **Nunca se añade
+  nada sin que el cliente lo toque.**
+- **Alérgenos**: se marcan por producto en **Catálogo → producto** (los 14 de
+  declaración obligatoria, `lib/alergenos.ts`). El asistente solo afirma lo
+  declarado; si un producto no tiene datos, o preguntan por sabores y toppings
+  (que van por opción y todavía no los declaran), remite al personal. La carta
+  los muestra también al confirmar el producto.
+- **Coste**: el endpoint es público, así que hay un límite por IP y heladería
+  (`lib/rate-limit.ts`, 15 mensajes/minuto) y el modelo por defecto es el más
+  barato (`claude-haiku-4-5`). El límite es en memoria de cada instancia: si
+  algún día hace falta algo serio, ese archivo es el sitio.
 
 ## Sesión de mesa (caducidad del QR)
 

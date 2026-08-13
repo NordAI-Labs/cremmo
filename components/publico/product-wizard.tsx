@@ -24,7 +24,8 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { cn, formatEuro } from "@/lib/utils";
-import { useCart } from "@/store/cart";
+import { nombresAlergenos } from "@/lib/alergenos";
+import { nuevaLineaId, useCart } from "@/store/cart";
 import type {
   GrupoConOpcionesCargadas,
   PersonalizacionElegida,
@@ -47,6 +48,11 @@ export interface WizardConfig {
   descripcion: string | null;
   foto_url: string | null;
   precioBase: number;
+  /**
+   * Alérgenos declarados (ver lib/alergenos.ts). Vacío en las categorías: lo
+   * que se monta por pasos no los declara todavía, van por opción.
+   */
+  alergenos: string[];
   grupos: Grupo[];
 }
 
@@ -83,6 +89,7 @@ export function configDesdeProducto(p: ProductoConOpciones): WizardConfig {
     descripcion: p.descripcion,
     foto_url: p.foto_url,
     precioBase: Number(p.precio),
+    alergenos: p.alergenos ?? [],
     grupos: p.grupos_opciones,
   };
 }
@@ -96,6 +103,7 @@ export function configDesdeCategoria(c: CategoriaConOpciones): WizardConfig {
     descripcion: null,
     foto_url: null,
     precioBase: 0,
+    alergenos: [],
     grupos: c.grupos_opciones,
   };
 }
@@ -246,10 +254,7 @@ export function ProductWizard({
     );
 
     addItem({
-      lineId:
-        typeof crypto !== "undefined" && "randomUUID" in crypto
-          ? crypto.randomUUID()
-          : String(Date.now() + Math.random()),
+      lineId: nuevaLineaId(),
       producto_id: config!.kind === "producto" ? config!.id : null,
       categoria_id: config!.kind === "categoria" ? config!.id : null,
       nombre: config!.nombre,
@@ -576,6 +581,16 @@ function Resumen({
           </p>
         )}
       </div>
+
+      {config.alergenos.length > 0 && (
+        <div className="rounded-lg bg-muted p-3">
+          <p className="text-xs font-semibold">Contiene</p>
+          <p className="text-xs text-muted-foreground">
+            {nombresAlergenos(config.alergenos).join(" · ")}. Si tienes alergia o
+            intolerancia, consúltalo con el personal.
+          </p>
+        </div>
+      )}
 
       <div className="space-y-2">
         <Badge variant="secondary">Notas</Badge>

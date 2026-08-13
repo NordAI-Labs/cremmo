@@ -13,7 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { cn, formatEuro } from "@/lib/utils";
-import { useCart } from "@/store/cart";
+import { nuevaLineaId, useCart } from "@/store/cart";
 import type { Producto } from "@/types/database.types";
 import type { PersonalizacionElegida, PromocionConSlots } from "@/types";
 
@@ -99,10 +99,7 @@ export function ComboWizard({
     }
 
     addItem({
-      lineId:
-        typeof crypto !== "undefined" && "randomUUID" in crypto
-          ? crypto.randomUUID()
-          : String(Date.now() + Math.random()),
+      lineId: nuevaLineaId(),
       producto_id: null,
       promocion_id: promocion!.id,
       nombre: promocion!.nombre,
