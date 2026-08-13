@@ -78,6 +78,9 @@ npm install
      terminar)
    - `0015_plan_basic.sql` / `0016_plan_basic_defecto.sql` — nuevo plan de
      entrada Basic: valor del enum, nuevo default y onboarding
+   - `0017_valoraciones_app.sql` — valoración de la app por heladería (una
+     por heladería), con RLS para el modal del panel y la sección de reseñas
+     de la landing
 
    > Alternativamente, con la [CLI de Supabase](https://supabase.com/docs/guides/cli):
    > `supabase link` y `supabase db push`.

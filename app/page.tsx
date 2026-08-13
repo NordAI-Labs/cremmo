@@ -5,10 +5,17 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { PLANES, formatPrecioPlan } from "@/lib/planes";
+import { RESENAS_MUESTRA } from "@/lib/resenas";
+import { resenasPublicadas } from "@/lib/valoraciones";
+import { ResenasCarousel } from "@/components/landing/resenas-carousel";
 import { PieLegal } from "@/components/legal/pie-legal";
 import { cn } from "@/lib/utils";
 
-export default function Home() {
+export default async function Home() {
+  // Las reales aprobadas van primero; las de muestra rellenan mientras no haya
+  // suficientes (ver 0017_valoraciones_app.sql y lib/valoraciones.ts).
+  const resenas = [...(await resenasPublicadas()), ...RESENAS_MUESTRA];
+
   return (
     <main className="flex-1">
       <header className="border-b">
@@ -90,6 +97,20 @@ export default function Home() {
             </CardContent>
           </Card>
         ))}
+      </section>
+
+      <section className="border-t py-16 md:py-20">
+        <div className="mx-auto max-w-6xl px-4">
+          <div className="text-center">
+            <h2 className="text-3xl md:text-4xl font-bold tracking-tight">
+              Lo que dicen las heladerías que ya usan Cremmo
+            </h2>
+          </div>
+
+          <div className="mt-10">
+            <ResenasCarousel resenas={resenas} />
+          </div>
+        </div>
       </section>
 
       <section id="precios" className="border-t bg-accent/20 py-16 md:py-20">

@@ -4,7 +4,9 @@ import { cerrarSesion } from "@/app/(auth)/actions";
 import { DashboardShell } from "@/components/dashboard/dashboard-shell";
 import { SuscripcionBloqueada } from "@/components/dashboard/suscripcion-bloqueada";
 import { AvisoImpago } from "@/components/dashboard/aviso-impago";
+import { ModalValoracion } from "@/components/dashboard/modal-valoracion";
 import { estadoSuscripcion } from "@/lib/planes";
+import { tocaPedirValoracion, yaValoroLaApp } from "@/lib/valoraciones";
 
 export default async function DashboardLayout({
   children,
@@ -31,6 +33,13 @@ export default async function DashboardLayout({
     );
   }
 
+  // Solo se le pide al propietario, a partir de los 15 días del alta, y deja
+  // de pedirse en cuanto ha enviado una valoración (para siempre).
+  const pedirValoracion =
+    esOwner &&
+    tocaPedirValoracion(session.heladeria) &&
+    !(await yaValoroLaApp(session.heladeria.id));
+
   return (
     <DashboardShell
       heladeria={session.heladeria}
@@ -38,6 +47,7 @@ export default async function DashboardLayout({
       onLogout={cerrarSesion}
     >
       {estado === "impago" && <AvisoImpago esOwner={esOwner} />}
+      {pedirValoracion && <ModalValoracion />}
       {children}
     </DashboardShell>
   );

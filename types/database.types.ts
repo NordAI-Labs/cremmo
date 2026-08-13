@@ -358,6 +358,28 @@ export interface Database {
         Update: Partial<Database["public"]["Tables"]["pedidos"]["Insert"]>;
         Relationships: [];
       };
+      valoraciones_app: {
+        Row: {
+          id: string;
+          heladeria_id: string;
+          puntuacion: number;
+          comentario: string | null;
+          publicada: boolean;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          heladeria_id: string;
+          puntuacion: number;
+          comentario?: string | null;
+          publicada?: boolean;
+          created_at?: string;
+        };
+        Update: Partial<
+          Database["public"]["Tables"]["valoraciones_app"]["Insert"]
+        >;
+        Relationships: [];
+      };
       pedido_items: {
         Row: {
           id: string;
@@ -477,3 +499,4 @@ export type PromocionSlot = Tables<"promocion_slots">;
 export type PromocionSlotProducto = Tables<"promocion_slot_productos">;
 export type Pedido = Tables<"pedidos">;
 export type PedidoItem = Tables<"pedido_items">;
+export type ValoracionApp = Tables<"valoraciones_app">;
